@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { nanoid } from 'nanoid';
 import { useDispatch, useSelector } from 'react-redux/es/exports';
+import { toast } from 'react-toastify';
 import * as operations from 'redux/contacts/contacts-operations';
-
 import s from './Form.module.css';
+
+import Loader from 'Loader/Loader';
 
 export default function Form() {
   const [name, setName] = useState('');
@@ -11,6 +13,7 @@ export default function Form() {
 
   const dispatch = useDispatch();
   const contacts = useSelector(state => state.contacts.entities);
+  const isLoading = useSelector(state => state.contacts.isLoading);
 
   const nameId = nanoid();
   const phoneId = nanoid();
@@ -33,9 +36,12 @@ export default function Form() {
     const contact = { name, number };
 
     if (isContactUnique(contact) === false) {
-      return reset();
+      return;
     }
+
     dispatch(operations.addContact(contact));
+
+    toast.success(`Contact '${contact.name}' successfully added`);
     reset();
   };
 
@@ -45,7 +51,7 @@ export default function Form() {
         contact => contact.name.toLowerCase() === newContact.name.toLowerCase()
       )
     ) {
-      window.alert(`'${newContact.name}' is already in contacts`);
+      toast.warning(`Contact '${newContact.name}' already exist`);
       return false;
     }
     return newContact;
@@ -93,9 +99,14 @@ export default function Form() {
               className={s.input}
             />
           </label>
-          <button type="submit" className={s.button}>
-            Add contact
-          </button>
+
+          {isLoading === true ? (
+            <Loader />
+          ) : (
+            <button type="submit" className={s.button}>
+              Add contact
+            </button>
+          )}
         </div>
       </form>
     </>
